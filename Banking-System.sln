@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AddharCardSystem", "AddharC
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UserManagementSystem", "UserManagementSystem\UserManagementSystem.csproj", "{F50575BD-CA25-4E11-B3FE-5F726779A173}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Models", "Models\Models.csproj", "{90A3ECE4-B84F-436B-8912-794C2B60BFF7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,5 +32,9 @@ Global
 		{F50575BD-CA25-4E11-B3FE-5F726779A173}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F50575BD-CA25-4E11-B3FE-5F726779A173}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F50575BD-CA25-4E11-B3FE-5F726779A173}.Release|Any CPU.Build.0 = Release|Any CPU
+		{90A3ECE4-B84F-436B-8912-794C2B60BFF7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{90A3ECE4-B84F-436B-8912-794C2B60BFF7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{90A3ECE4-B84F-436B-8912-794C2B60BFF7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{90A3ECE4-B84F-436B-8912-794C2B60BFF7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
