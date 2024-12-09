@@ -1,6 +1,0 @@
-@AddharCardSystem_HostAddress = http://localhost:5258
-
-GET {{AddharCardSystem_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
