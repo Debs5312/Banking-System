@@ -6,20 +6,22 @@ namespace Models
     public class Account
     {
         [Key]
-        public int Id { get; set; }
+        public Guid Id { get; set; }
         [Required]
         public int AccountNumber { get; set; }
 
+
+        [Required]
         [ForeignKey("PrimaryUserId")]
-        public int PrimaryUserId { get; set; }
+        public Guid PrimaryUserId { get; set; }
         public User PrimaryAccountHolder { get; set; }
 
         [ForeignKey("SecondaryUserId")]
-        public int SecondaryUserId { get; set; }
+        public Guid SecondaryUserId { get; set; }
         public User SecondaryAccountHolder { get; set; }
 
         [ForeignKey("NomineeId")]
-        public int NomineeId { get; set; }
+        public Guid NomineeId { get; set; }
         public User Nominee { get; set; }
 
         public DateTime CreatedDate { get; set; } 

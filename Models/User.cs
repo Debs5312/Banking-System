@@ -6,7 +6,7 @@ namespace Models
     public class User
     {
         [Key]
-        public int Id { get; set; }
+        public Guid Id { get; set; }
         [Required]
         public string UserName { get; set; }
         [Required]
@@ -17,10 +17,12 @@ namespace Models
         public string Role { get; set; } = "user";
         
         [ForeignKey("AdharId")]
-        public int AdharId { get; set; }
+        public Guid AdharId { get; set; }
         public Adhar AdharNumber { get; set; }
 
-        public List<Account> Accounts { get; set; }
+        public Account PrimaryAccount { get; set; }
+        public List<Account> SecondaryAccounts { get; set; }
+        public List<Account> Nominees { get; set; }
 
         public DateTime RegisteredDate { get; set; } 
 
