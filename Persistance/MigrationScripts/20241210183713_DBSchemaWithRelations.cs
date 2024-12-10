@@ -44,7 +44,7 @@ namespace Persistance.MigrationScripts
                         column: x => x.AdharId,
                         principalTable: "Adhars",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.NoAction);
                 });
 
             migrationBuilder.CreateTable(
@@ -54,8 +54,8 @@ namespace Persistance.MigrationScripts
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false, defaultValueSql: "NEWID()"),
                     AccountNumber = table.Column<int>(type: "int", nullable: false),
                     PrimaryUserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    SecondaryUserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    NomineeId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    SecondaryUserId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    NomineeId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedDate = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
@@ -67,19 +67,19 @@ namespace Persistance.MigrationScripts
                         column: x => x.NomineeId,
                         principalTable: "Users",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.NoAction);
                     table.ForeignKey(
                         name: "FK_Accounts_Users_PrimaryUserId",
                         column: x => x.PrimaryUserId,
                         principalTable: "Users",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.NoAction);
                     table.ForeignKey(
                         name: "FK_Accounts_Users_SecondaryUserId",
                         column: x => x.SecondaryUserId,
                         principalTable: "Users",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.NoAction);
                 });
 
             migrationBuilder.CreateIndex(
