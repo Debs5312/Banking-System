@@ -15,6 +15,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{EC943488
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AccountManagementSystem.UnitTests", "Tests\AccountManagementSystem.UnitTests\AccountManagementSystem.UnitTests.csproj", "{15EC94AD-6D4D-402E-AE38-07BAC591F262}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UserManagementSystem.UnitTests", "Tests\UserManagementSystem.UnitTests\UserManagementSystem.UnitTests.csproj", "{8CBC65C3-1E76-4BFF-8E35-65DD35AB442A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -44,8 +46,13 @@ Global
 		{15EC94AD-6D4D-402E-AE38-07BAC591F262}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{15EC94AD-6D4D-402E-AE38-07BAC591F262}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{15EC94AD-6D4D-402E-AE38-07BAC591F262}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8CBC65C3-1E76-4BFF-8E35-65DD35AB442A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8CBC65C3-1E76-4BFF-8E35-65DD35AB442A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8CBC65C3-1E76-4BFF-8E35-65DD35AB442A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8CBC65C3-1E76-4BFF-8E35-65DD35AB442A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{15EC94AD-6D4D-402E-AE38-07BAC591F262} = {EC943488-0514-4B11-9CCC-8AB057435DBB}
+		{8CBC65C3-1E76-4BFF-8E35-65DD35AB442A} = {EC943488-0514-4B11-9CCC-8AB057435DBB}
 	EndGlobalSection
 EndGlobal
