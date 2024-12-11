@@ -1,3 +1,4 @@
+using AccountManagementSystem.Services.IServices;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AccountManagementSystem.Controllers
@@ -6,10 +7,22 @@ namespace AccountManagementSystem.Controllers
     [Route("api/[controller]")]
     public class AccountController : ControllerBase
     {
-        [HttpGet("GetAllAccounts")]
+        private readonly IAccountService _accountService;
+
+        public AccountController(IAccountService accountService)
+        {
+            _accountService = accountService;
+        }
+
+
+        [HttpGet("AllAccounts")]
         public async Task<IActionResult> Get()
         {
-            return Ok("Accounts");
+            var accounts = await _accountService.GetAccounts();
+
+            if(accounts.Any()) return Ok(accounts);
+
+            return NotFound();
         }
     }
 }
