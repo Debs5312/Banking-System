@@ -6,7 +6,7 @@ namespace AccountManagementSystem.Controllers
     [Route("api/[controller]")]
     public class AccountController : ControllerBase
     {
-        [HttpGet(Name = "GetAllAccounts")]
+        [HttpGet("GetAllAccounts")]
         public async Task<IActionResult> Get()
         {
             return Ok("Accounts");
