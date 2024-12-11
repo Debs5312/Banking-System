@@ -11,6 +11,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Models", "Models\Models.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Persistance", "Persistance\Persistance.csproj", "{E670572D-5AFB-4933-935B-73C0C3F0FFC4}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{EC943488-0514-4B11-9CCC-8AB057435DBB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AccountManagementSystem.UnitTests", "Tests\AccountManagementSystem.UnitTests\AccountManagementSystem.UnitTests.csproj", "{15EC94AD-6D4D-402E-AE38-07BAC591F262}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -36,5 +40,12 @@ Global
 		{E670572D-5AFB-4933-935B-73C0C3F0FFC4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E670572D-5AFB-4933-935B-73C0C3F0FFC4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E670572D-5AFB-4933-935B-73C0C3F0FFC4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{15EC94AD-6D4D-402E-AE38-07BAC591F262}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{15EC94AD-6D4D-402E-AE38-07BAC591F262}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{15EC94AD-6D4D-402E-AE38-07BAC591F262}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{15EC94AD-6D4D-402E-AE38-07BAC591F262}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{15EC94AD-6D4D-402E-AE38-07BAC591F262} = {EC943488-0514-4B11-9CCC-8AB057435DBB}
 	EndGlobalSection
 EndGlobal
