@@ -17,11 +17,11 @@ namespace Models
         public User PrimaryAccountHolder { get; set; }
 
         [ForeignKey("SecondaryUserId")]
-        public Guid SecondaryUserId { get; set; }
+        public Guid? SecondaryUserId { get; set; }
         public User SecondaryAccountHolder { get; set; }
 
         [ForeignKey("NomineeId")]
-        public Guid NomineeId { get; set; }
+        public Guid? NomineeId { get; set; }
         public User Nominee { get; set; }
 
         public DateTime CreatedDate { get; set; } 

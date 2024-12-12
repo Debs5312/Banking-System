@@ -5,5 +5,6 @@ namespace AccountManagementSystem.Services.IServices
     public interface IAccountService
     {
         Task<List<Account>> GetAccounts();
+        Task<Account> GetSingleAccount(Guid id);
     }
 }

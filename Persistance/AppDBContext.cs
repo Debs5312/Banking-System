@@ -6,9 +6,13 @@ namespace Persistance
 {
     public class AppDBContext : DbContext
     {
-        public AppDBContext(DbContextOptions options) : base(options)
+        public AppDBContext()
         {
             
+        }
+        public AppDBContext(DbContextOptions<AppDBContext> options) : base(options)
+        {
+
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -16,7 +20,7 @@ namespace Persistance
             Connection connection = new Connection();
             optionsBuilder.UseSqlServer(connection.ConnectionString)
             .LogTo(Console.WriteLine, LogLevel.Information)
-            .EnableSensitiveDataLogging();;
+            .EnableSensitiveDataLogging(); ;
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -40,7 +44,7 @@ namespace Persistance
             modelBuilder.Entity<User>().HasMany(usr => usr.SecondaryAccounts)
             .WithOne(accnt => accnt.SecondaryAccountHolder)
             .HasForeignKey(key => key.SecondaryUserId);
-            
+
             modelBuilder.Entity<User>().HasMany(usr => usr.Nominees)
             .WithOne(accnt => accnt.Nominee)
             .HasForeignKey(key => key.NomineeId);
@@ -48,9 +52,9 @@ namespace Persistance
             base.OnModelCreating(modelBuilder);
         }
 
-        public DbSet<Account> Accounts { get; set; }
-        public DbSet<User> Users { get; set; }
-        public DbSet<Adhar> Adhars { get; set; }
+        public virtual DbSet<Account> Accounts { get; set; }
+        public virtual DbSet<User> Users { get; set; }
+        public virtual DbSet<Adhar> Adhars { get; set; }
 
 
     }

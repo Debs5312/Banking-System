@@ -16,7 +16,12 @@ namespace AccountManagementSystem.Services
 
         public async Task<List<Account>> GetAccounts()
         {
-            return await _dbContext.Accounts.ToListAsync();
+            return await _dbContext.Accounts.AsNoTracking().ToListAsync();
+        }
+
+        public async Task<Account> GetSingleAccount(Guid id)
+        {
+            return await _dbContext.Accounts.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
         }
     }
 }
