@@ -3,6 +3,7 @@ using AccountManagementSystem.Services.IServices;
 using AutoFixture;
 using AutoFixture.Xunit2;
 using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
 using MockQueryable.Moq;
 using Models;
 using Moq;
@@ -76,6 +77,31 @@ namespace AccountManagementSystem.UnitTests.Services
             // Assert
             results.Should().NotBeNull();
             results.Id.Should().Be(id);
+        }
+
+        [Fact]
+        public async Task Create_OnSuccess_NewDataToDatabase()
+        {
+            // Arrange
+            var singleAccount = fixture.Build<Account>()
+                                .Without(x => x.PrimaryAccountHolder)
+                                .Without(x => x.SecondaryAccountHolder)
+                                .Without(x => x.Nominee)
+                                .Without(x => x.AccountNumber)
+                                .Without(x => x.CreatedDate)
+                                .Without(x => x.UpdatedDate)
+                                .Create<Account>();               
+
+            Mock<DbSet<Account>> mockDBSet = new Mock<DbSet<Account>>();
+
+            _context.Setup(x => x.Accounts).Returns(mockDBSet.Object);
+
+            // Act
+            var result = await _accountService.CreateNewAccount(singleAccount);
+
+            // Assert
+            mockDBSet.Verify(m => m.AddAsync(It.IsAny<Account>(), It.IsAny<CancellationToken>()), Times.Once);
+            _context.Verify(m => m.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
         }
     }
 }

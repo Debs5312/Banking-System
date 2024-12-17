@@ -6,5 +6,6 @@ namespace AccountManagementSystem.Services.IServices
     {
         Task<List<Account>> GetAccounts();
         Task<Account> GetSingleAccount(Guid id);
+        Task<Account> CreateNewAccount(Account account);
     }
 }

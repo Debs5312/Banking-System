@@ -56,7 +56,7 @@ namespace Persistance.MigrationScripts
 
                     b.HasIndex("SecondaryUserId");
 
-                    b.ToTable("Accounts");
+                    b.ToTable("Accounts", (string)null);
                 });
 
             modelBuilder.Entity("Models.Adhar", b =>
@@ -74,7 +74,7 @@ namespace Persistance.MigrationScripts
 
                     b.HasKey("Id");
 
-                    b.ToTable("Adhars");
+                    b.ToTable("Adhars", (string)null);
                 });
 
             modelBuilder.Entity("Models.User", b =>
@@ -113,7 +113,7 @@ namespace Persistance.MigrationScripts
                     b.HasIndex("AdharId")
                         .IsUnique();
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("Models.Account", b =>
