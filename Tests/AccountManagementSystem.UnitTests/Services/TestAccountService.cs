@@ -55,9 +55,20 @@ namespace AccountManagementSystem.UnitTests.Services
                                 .Without(x => x.Nominee)
                                 .Create<Account>();
             
+            var accountQueryableObject = fixture.Build<Account>()
+                            .Without(x => x.PrimaryAccountHolder)
+                            .Without(x => x.SecondaryAccountHolder)
+                            .Without(x => x.Nominee)
+                            .CreateMany<Account>()
+                            .AsQueryable();
+
+            var accountList = accountQueryableObject.ToList();
+
+            accountList.Add(singleAccount);
+            var accountDbSet = accountList.BuildMockDbSet();              
 
             _context.Setup(m => m.Accounts)
-                .Returns(() => singleAccount);                                 
+                .Returns(() => accountDbSet.Object);                                 
 
             // Act
             var results = await _accountService.GetSingleAccount(id);
