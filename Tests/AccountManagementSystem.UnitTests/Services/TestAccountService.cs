@@ -75,6 +75,7 @@ namespace AccountManagementSystem.UnitTests.Services
 
             // Assert
             results.Should().NotBeNull();
+            results.Id.Should().Be(id);
         }
     }
 }
