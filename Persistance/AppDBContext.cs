@@ -20,7 +20,7 @@ namespace Persistance
             Connection connection = new Connection();
             optionsBuilder.UseSqlServer(connection.ConnectionString)
             .LogTo(Console.WriteLine, LogLevel.Information)
-            .EnableSensitiveDataLogging(); ;
+            .EnableSensitiveDataLogging();
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
