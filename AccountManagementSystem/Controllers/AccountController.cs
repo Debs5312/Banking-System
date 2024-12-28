@@ -1,6 +1,5 @@
 using AccountManagementSystem.Services.IServices;
 using AutoMapper;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Models;
 using Models.DTOs;
@@ -29,6 +28,45 @@ namespace AccountManagementSystem.Controllers
             return NotFound();
         }
 
+        [HttpGet("AllAccounts/withRef")]
+        public async Task<IActionResult> GetWithRef()
+        {
+            var accounts = await _accountService.GetAccountsWithRef();
+            if(accounts.Any())
+            {
+                var readAccountDetails = _mapper.Map<List<AccountReadDTO>>(accounts);
+                return Ok(readAccountDetails);
+            } 
+            return NotFound();
+        }
+
+        [HttpGet("GetAccount/withRef/{id}")]
+        public async Task<IActionResult> GetAccountWithRef(Guid id, CancellationToken cancellationToken)
+        {
+            try
+            {
+                if(cancellationToken.IsCancellationRequested)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    return NoContent();
+                }
+                else
+                {
+                    var account = await _accountService.GetSingleAccountWithRef(id);
+                    if(account != null) {
+                        var accountWithAdharNumber = _mapper.Map<AccountReadDTO>(account);
+                        return Ok(accountWithAdharNumber);
+                    }
+                    return NotFound();
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"{e} thrown with message: {e.Message}");
+                return StatusCode(500);
+            }
+        }
+
         [HttpGet("GetAccount/{id}")]
         public async Task<IActionResult> GetAccount(Guid id, CancellationToken cancellationToken)
         {
@@ -53,8 +91,9 @@ namespace AccountManagementSystem.Controllers
             }
         }
 
-        [HttpPost("AddNewAccount")]
-        public async Task<IActionResult> CreateAccount([FromBody]AccountModelInputDTO accountModelInputDTO, CancellationToken ct)
+
+        [HttpPost("Add")]
+        public async Task<IActionResult> Create([FromBody]AccountModelInputDTO accountModelInputDTO, CancellationToken ct)
         {
             try
             {
@@ -68,6 +107,54 @@ namespace AccountManagementSystem.Controllers
                     Account account = _mapper.Map<Account>(accountModelInputDTO);
                     var newAccount = await _accountService.CreateNewAccount(account);
                     if(newAccount != null) return StatusCode(201, newAccount);
+                    return BadRequest();
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"{e} thrown with message: {e.Message}");
+                return StatusCode(500);
+            }
+        }
+
+        [HttpPut("Update/{id}")]
+        public async Task<IActionResult> Update(Guid id, [FromBody]UpdateAccountDTO updateAccount, CancellationToken ct)
+        {
+            try
+            {
+                if(ct.IsCancellationRequested)
+                {
+                    ct.ThrowIfCancellationRequested();
+                    return NoContent();
+                }
+                else
+                {
+                    var updatedAccount = await _accountService.UpdateAccount(id, updateAccount);
+                    if(updatedAccount != null) return Ok(updatedAccount);
+                    return BadRequest();
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"{e} thrown with message: {e.Message}");
+                return StatusCode(500);
+            }
+        }
+
+        [HttpDelete("Delete/{id}")]
+        public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
+        {
+            try
+            {
+                if(ct.IsCancellationRequested)
+                {
+                    ct.ThrowIfCancellationRequested();
+                    return NoContent();
+                }
+                else
+                {
+                    var updatedAccount = await _accountService.DeleteAccount(id);
+                    if(updatedAccount != null) return Ok(updatedAccount);
                     return BadRequest();
                 }
             }
