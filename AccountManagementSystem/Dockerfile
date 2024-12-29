@@ -7,7 +7,6 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-env
 WORKDIR /src
 COPY ["AccountManagementSystem/AccountManagementSystem.csproj", "AccountManagementSystem/"]
 COPY ["Persistance/Persistance.csproj", "Persistance/"]
-# COPY ["Model/Model.csproj", "Model/"]
 RUN dotnet restore "AccountManagementSystem/AccountManagementSystem.csproj"
 COPY . .
 WORKDIR "/src/AccountManagementSystem"
