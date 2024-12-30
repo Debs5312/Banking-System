@@ -1,5 +1,4 @@
 using AdharManagementSystem.Services.IServices;
-using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AdharManagementSystem.Controller
@@ -9,7 +8,6 @@ namespace AdharManagementSystem.Controller
     public class AdharController : ControllerBase
     {
         private readonly IAdharService _adharService;
-        private readonly IMapper _mapper;
 
         public AdharController(IAdharService adharService)
         {
