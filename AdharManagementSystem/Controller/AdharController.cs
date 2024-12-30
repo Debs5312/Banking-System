@@ -39,7 +39,7 @@ namespace AdharManagementSystem.Controller
                 else
                 {
                     var adhar = await _adharService.GetSingleAdhar(number);
-                    if(adhar != null) return Ok(adhar.Number);
+                    if(adhar != null) return Ok(adhar.Id);
                     return NotFound();
                 }
             }
