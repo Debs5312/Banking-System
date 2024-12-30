@@ -1,7 +1,6 @@
 using AdharManagementSystem.Services.IServices;
 using Microsoft.EntityFrameworkCore;
 using Models;
-using Models.DTOs;
 using Persistance;
 
 namespace AdharManagementSystem.Services
@@ -15,9 +14,9 @@ namespace AdharManagementSystem.Services
             _dbContext = dbContext;
         }
 
-        public async Task<Adhar> CreateNewAdhar(Adhar adhar)
+        public async Task<Adhar> CreateNewAdhar(int adharNumber)
         {
-            Random rnd = new Random();
+            var adhar = new Adhar{ Number = adharNumber };
             adhar.UpdatedDate = DateTime.Now;
             await _dbContext.Adhars.AddAsync(adhar);
             var result = await _dbContext.SaveChangesAsync();
@@ -30,23 +29,9 @@ namespace AdharManagementSystem.Services
             return await _dbContext.Adhars.AsNoTracking().ToListAsync();
         }
 
-        // public async Task<List<Adhar>> GetAdharsWithRef()
-        // {
-        //     return await _dbContext.Adhars.AsNoTracking()
-        //                     .Include(x => x.AdharCardHolder)
-        //                     .ToListAsync();
-        // }
-
-        public async Task<Adhar> GetSingleAdhar(Guid id)
+        public async Task<Adhar> GetSingleAdhar(int adharNum)
         {
-            return await _dbContext.Adhars.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
-        }
-
-        public async Task<Adhar> GetSingleAdharWithRef(Guid id)
-        {
-            return await _dbContext.Adhars.AsNoTracking()
-                            .Include(x => x.AdharCardHolder)
-                            .FirstOrDefaultAsync(x => x.Id == id);
+            return await _dbContext.Adhars.AsNoTracking().FirstOrDefaultAsync(x => x.Number == adharNum);
         }
 
         public async Task<Adhar> UpdateAdhar(Guid id, int updatedNumber)
@@ -55,7 +40,7 @@ namespace AdharManagementSystem.Services
             adhar.Number = updatedNumber;
             adhar.UpdatedDate = DateTime.Now;
             var result = await _dbContext.SaveChangesAsync();
-            if(result ==1) return adhar;
+            if(result == 1) return adhar;
             else return null;
         }
 
