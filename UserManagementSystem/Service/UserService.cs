@@ -49,6 +49,7 @@ namespace UserManagementSystem.Service
             {
                 loggedInResult.LoggedIn = false;
                 loggedInResult.Token = "";
+                loggedInResult.Message = "UserName is wrong!";
                 return loggedInResult;
             }
             else
@@ -58,11 +59,13 @@ namespace UserManagementSystem.Service
                 {
                     loggedInResult.LoggedIn = false;
                     loggedInResult.Token = "";
+                    loggedInResult.Message = "Password not matched";
                 }
                 else
                 {
                     loggedInResult.LoggedIn = true;
                     loggedInResult.Token = _tokenService.CreateToken(user);
+                    loggedInResult.Message = "User is logged in succesfully";
                 }
                 return loggedInResult;
             }

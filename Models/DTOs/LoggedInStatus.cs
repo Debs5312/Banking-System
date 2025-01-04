@@ -4,5 +4,6 @@ namespace Models.DTOs
     {
         public bool LoggedIn { get; set; }
         public string Token { get; set; }
+        public string Message { get; set; }
     }
 }
