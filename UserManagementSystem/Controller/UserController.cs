@@ -67,5 +67,53 @@ namespace UserManagementSystem.Controller
                 return StatusCode(500);
             }
         }
+
+        [HttpDelete("Delete/{id}")]
+        public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
+        {
+            try
+            {
+                if(ct.IsCancellationRequested)
+                {
+                    ct.ThrowIfCancellationRequested();
+                    return NoContent();
+                }
+                else
+                {
+                    var deleted = await _userService.DeleteUser(id);
+                    if(deleted) return Ok();
+                    return BadRequest();
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"{e} thrown with message: {e.Message}");
+                return StatusCode(500);
+            }
+        }
+
+        [HttpGet("get")]
+        public async Task<IActionResult> Get(CancellationToken ct)
+        {
+            try
+            {
+                if(ct.IsCancellationRequested)
+                {
+                    ct.ThrowIfCancellationRequested();
+                    return NoContent();
+                }
+                else
+                {
+                    var users = await _userService.ReturnUsers();
+                    if(users.Any()) return Ok(users);
+                    else return BadRequest();
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"{e} thrown with message: {e.Message}");
+                return StatusCode(500);
+            }
+        }
     }
 }

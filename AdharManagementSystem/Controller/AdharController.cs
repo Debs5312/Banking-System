@@ -110,8 +110,8 @@ namespace AdharManagementSystem.Controller
                 }
                 else
                 {
-                    var updatedAdhar = await _adharService.DeleteAdhar(id);
-                    if(updatedAdhar != null) return Ok(updatedAdhar);
+                    var deletedAdhar = await _adharService.DeleteAdhar(id);
+                    if(deletedAdhar != null) return Ok(deletedAdhar);
                     return BadRequest();
                 }
             }
