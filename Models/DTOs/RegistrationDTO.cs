@@ -5,7 +5,7 @@ namespace Models.DTOs
         public string UserName { get; set; }
         public string HashedPassword { get; set; }
         public string Address { get; set; }
-        public int AdharNumber { get; set; }
+        public string AdharId { get; set; }
 
     }
 }

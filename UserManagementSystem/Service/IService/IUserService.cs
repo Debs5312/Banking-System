@@ -4,6 +4,7 @@ namespace UserManagementSystem.Service.IService
 {
     public interface IUserService
     {
-        Task<bool> RegisterNewUser(RegistrationDTO registrationDTO);
+        Task<int> RegisterNewUser(RegistrationDTO registrationDTO);
+        Task<LoggedInStatus> LoginUser(LoginDTO loginDTO);
     }
 }
