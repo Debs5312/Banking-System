@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Models.DTOs;
+using Microsoft.Extensions.Logging;
 using UserManagementSystem.Service.IService;
 
 namespace UserManagementSystem.Controller
@@ -9,86 +10,85 @@ namespace UserManagementSystem.Controller
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
+        private readonly ILogger<UserController> _logger;
 
-        public UserController(IUserService userService)
+        public UserController(IUserService userService, ILogger<UserController> logger)
         {
             _userService = userService;
+            _logger = logger;
         }
 
+        // Registration endpoint
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody]RegistrationDTO registrationDTO, CancellationToken ct)
         {
             try
             {
-                if(ct.IsCancellationRequested)
+                ct.ThrowIfCancellationRequested();
+
+                var registrationStatus = await _userService.RegisterNewUser(registrationDTO);
+
+                return registrationStatus switch
                 {
-                    ct.ThrowIfCancellationRequested();
-                    return NoContent();
-                }
-                else
-                {
-                    var registrationStatus = await _userService.RegisterNewUser(registrationDTO);
-                    if(registrationStatus == 1) return StatusCode(409, "User alreday exists");
-                    else if(registrationStatus == 2) return StatusCode(409, "Adhar card alreday exists");
-                    else if(registrationStatus == 3) return Ok();
-                    else return BadRequest();
-                }
+                    RegistrationResult.Success => Ok("User registered successfully."),
+                    RegistrationResult.UserNameExists => Conflict("A user with this username already exists."),
+                    RegistrationResult.AdharIdInUse => Conflict("This Adhar ID is already in use."),
+                    RegistrationResult.InvalidAdharId => BadRequest("The provided Adhar ID is not a valid format."),
+                    _ => BadRequest("An unexpected error occurred during registration.")
+                };
             }
-            catch (Exception e)
+            catch (OperationCanceledException)
             {
-                Console.WriteLine($"{e} thrown with message: {e.Message}");
-                return StatusCode(500);
+                _logger.LogInformation("Registration operation was canceled.");
+                return new EmptyResult(); // Or StatusCode(499) if your client handles it
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An unhandled exception occurred during user registration.");
+                return StatusCode(StatusCodes.Status500InternalServerError, "An internal error occurred.");
             }
         }
 
-        [HttpGet("login")]
+        // Login endpoint
+        [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody]LoginDTO loginDTO, CancellationToken ct)
         {
             try
             {
-                if(ct.IsCancellationRequested)
+                ct.ThrowIfCancellationRequested();
+
+                var loggedInResult = await _userService.LoginUser(loginDTO);
+
+                if (loggedInResult.LoggedIn)
                 {
-                    ct.ThrowIfCancellationRequested();
-                    return NoContent();
+                    return Ok(loggedInResult);
                 }
-                else
-                {
-                    var loggedInResult = await _userService.LoginUser(loginDTO);
-                    if(!loggedInResult.LoggedIn && loggedInResult.Message == "UserName is wrong!")
-                        return BadRequest(loggedInResult);
-                    else if(!loggedInResult.LoggedIn && loggedInResult.Message == "Password not matched")
-                        return BadRequest(loggedInResult); 
-                    else return Ok(loggedInResult);
-                }
+
+                return Unauthorized(loggedInResult);
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                Console.WriteLine($"{e} thrown with message: {e.Message}");
-                return StatusCode(500);
+                _logger.LogError(ex, "An unhandled exception occurred during user login.");
+                return StatusCode(StatusCodes.Status500InternalServerError, "An internal error occurred.");
             }
         }
 
+        // Delete endpoint
         [HttpDelete("Delete/{id}")]
         public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
         {
             try
             {
-                if(ct.IsCancellationRequested)
-                {
-                    ct.ThrowIfCancellationRequested();
-                    return NoContent();
-                }
-                else
-                {
-                    var deleted = await _userService.DeleteUser(id);
-                    if(deleted) return Ok();
-                    return BadRequest();
-                }
+                ct.ThrowIfCancellationRequested();
+
+                var deleted = await _userService.DeleteUser(id);
+
+                return deleted ? Ok("User deleted successfully.") : NotFound("User not found.");
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                Console.WriteLine($"{e} thrown with message: {e.Message}");
-                return StatusCode(500);
+                _logger.LogError(ex, "An unhandled exception occurred during user deletion for ID {UserId}.", id);
+                return StatusCode(StatusCodes.Status500InternalServerError, "An internal error occurred.");
             }
         }
 
@@ -97,22 +97,15 @@ namespace UserManagementSystem.Controller
         {
             try
             {
-                if(ct.IsCancellationRequested)
-                {
-                    ct.ThrowIfCancellationRequested();
-                    return NoContent();
-                }
-                else
-                {
-                    var users = await _userService.ReturnUsers();
-                    if(users.Any()) return Ok(users);
-                    else return BadRequest();
-                }
+                ct.ThrowIfCancellationRequested();
+
+                var users = await _userService.ReturnUsers();
+                return Ok(users);
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                Console.WriteLine($"{e} thrown with message: {e.Message}");
-                return StatusCode(500);
+                _logger.LogError(ex, "An unhandled exception occurred while retrieving users.");
+                return StatusCode(StatusCodes.Status500InternalServerError, "An internal error occurred.");
             }
         }
     }

@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Models;
 using Models.DTOs;
 using Persistance;
+using Microsoft.Extensions.Logging;
 using UserManagementSystem.Service.IService;
 
 namespace UserManagementSystem.Service
@@ -10,10 +11,12 @@ namespace UserManagementSystem.Service
     {
         private readonly AppDBContext _dbContext;
         private readonly TokenService _tokenService;
-        public UserService(AppDBContext dbContext, TokenService tokenService)
+        private readonly ILogger<UserService> _logger;
+        public UserService(AppDBContext dbContext, TokenService tokenService, ILogger<UserService> logger)
         {
             _dbContext = dbContext;
             _tokenService = tokenService;
+            _logger = logger;
         }
 
         public async Task<List<User>> ReturnUsers()
@@ -25,153 +28,139 @@ namespace UserManagementSystem.Service
                             .Include(x => x.Nominees)
                             .ToListAsync();
         }
-        public async Task<int> RegisterNewUser(RegistrationDTO registrationDTO)
+        public async Task<RegistrationResult> RegisterNewUser(RegistrationDTO registrationDTO)
         {
-            if(await _dbContext.Users.AnyAsync(x => x.UserName == registrationDTO.UserName))
+            if (await _dbContext.Users.AnyAsync(x => x.UserName == registrationDTO.UserName))
             {
-                return 1;
-            }
-            else if(await _dbContext.Adhars.AnyAsync(x => x.Id.ToString() == registrationDTO.AdharId))
-            {
-                return 2;
-            }
-            else{
-                User newUser = new User();
-                newUser.UserName = registrationDTO.UserName;
-                newUser.Password = PasswordHashedService.Hash(registrationDTO.HashedPassword);
-                newUser.Address = registrationDTO.Address;
-                newUser.AdharId = Guid.Parse(registrationDTO.AdharId);
-                newUser.RegisteredDate = DateTime.Now;
-
-                await _dbContext.Users.AddAsync(newUser);
-                var result = await _dbContext.SaveChangesAsync();
-                if(result == 1) return 3;
-                else return 4;
+                return RegistrationResult.UserNameExists;
             }
 
+            if (!Guid.TryParse(registrationDTO.AdharId, out var adharGuid))
+            {
+                return RegistrationResult.InvalidAdharId;
+            }
+
+            if (await _dbContext.Adhars.AnyAsync(x => x.Id == adharGuid))
+            {
+                return RegistrationResult.AdharIdInUse;
+            }
+
+            // Note: The DTO property `HashedPassword` is misleading. It should likely be `Password`,
+            // as it contains the plain text password to be hashed.
+            var newUser = new User
+            {
+                UserName = registrationDTO.UserName,
+                Password = PasswordHashedService.Hash(registrationDTO.HashedPassword),
+                Address = registrationDTO.Address,
+                AdharId = adharGuid,
+                RegisteredDate = DateTime.UtcNow
+            };
+
+            await _dbContext.Users.AddAsync(newUser);
+            var result = await _dbContext.SaveChangesAsync();
+
+            return result > 0 ? RegistrationResult.Success : RegistrationResult.SaveChangesFailure;
         }
 
         public async Task<LoggedInStatus> LoginUser(LoginDTO loginDTO)
         {
-            var user = await _dbContext.Users.FindAsync(loginDTO.UserName);
+            // Use FirstOrDefaultAsync for non-primary key lookups. FindAsync is for PKs.
+            var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.UserName == loginDTO.UserName);
             var loggedInResult = new LoggedInStatus();
-            if(user == null)
+
+            // Verify password only if user exists. Use a generic error message
+            // to prevent username enumeration attacks.
+            if (user == null || !PasswordHashedService.Verify(loginDTO.Password, user.Password))
             {
-                loggedInResult.LoggedIn = false;
-                loggedInResult.Token = "";
-                loggedInResult.Message = "UserName is wrong!";
-                return loggedInResult;
+                return new LoggedInStatus
+                {
+                    LoggedIn = false,
+                    Token = string.Empty,
+                    Message = "Invalid username or password."
+                };
             }
-            else
+
+            return new LoggedInStatus
             {
-                var passwordMatched = PasswordHashedService.Verify(loginDTO.Password, user.Password);
-                if(!passwordMatched)
-                {
-                    loggedInResult.LoggedIn = false;
-                    loggedInResult.Token = "";
-                    loggedInResult.Message = "Password not matched";
-                }
-                else
-                {
-                    loggedInResult.LoggedIn = true;
-                    loggedInResult.Token = _tokenService.CreateToken(user);
-                    loggedInResult.Message = "User is logged in succesfully";
-                }
-                return loggedInResult;
-            }
+                LoggedIn = true,
+                Token = _tokenService.CreateToken(user),
+                Message = "User is logged in successfully."
+            };
         }
 
         public async Task<bool> DeleteUser(Guid id)
         {
             var user = await _dbContext.Users
-                        .Include(x => x.PrimaryAccount)
-                        .Include(x => x.SecondaryAccounts)
-                        .Include(x => x.Nominees)
-                        .FirstOrDefaultAsync(x => x.Id == id);
-            if(user != null)
+                .Include(x => x.PrimaryAccount)
+                .FirstOrDefaultAsync(x => x.Id == id);
+
+            if (user == null)
             {
-                if(user.PrimaryAccount != null)
-                {
-                    var removed = await RemovePrimaryAccount(user.PrimaryAccount);
-                    if(removed)
-                    {
-                        Console.WriteLine($"Primary Account with number {user.PrimaryAccount.AccountNumber} removed for user {user.UserName}");
-                    }
-                    else
-                    {
-                        Console.WriteLine($"Account with number {user.PrimaryAccount.AccountNumber} cannot be removed for user {user.UserName}. Kindly check with DBA for more details.");
-                        return false;
-                    }
-                    
-                }
-                if(user.SecondaryAccounts.Count() > 0)
-                {
-                    var removed = await RemoveSecondaryUserDetails(user.Id);
-                    if(removed)
-                    {
-                        Console.WriteLine($"User with username {user.UserName} has removed as a Secondary user from single or multiple accounts");
-                    }
-                    else
-                    {
-                        Console.WriteLine($"User with username {user.UserName} cannot be removed as a Secondary user from single or multiple accounts");
-                        return false;
-                    }
-                    
-                }
-                if(user.Nominees.Count() > 0)
-                {
-                    var removed = await RemoveNomineeUserDetails(user.Id);
-                    if(removed)
-                    {
-                        Console.WriteLine($"User with username {user.UserName} has removed as a nominee user from single or multiple accounts");
-                    }
-                    else
-                    {
-                        Console.WriteLine($"User with username {user.UserName} cannot be removed as a nominee user from single or multiple accounts");
-                        return false;
-                    }
-                    
-                }
-                _dbContext.Users.Remove(user);
-                var result = await _dbContext.SaveChangesAsync();
-                if(result == 1) return true;
-                else return false;
+                return false;
             }
-            else return false;
+
+            try
+            {
+                // Stage all changes within the DbContext without saving yet.
+                if (user.PrimaryAccount != null)
+                {
+                    RemovePrimaryAccount(user.PrimaryAccount);
+                }
+
+                await RemoveUserAsSecondaryHolder(user.Id);
+                await RemoveUserAsNominee(user.Id);
+
+                _dbContext.Users.Remove(user);
+
+                // Save all staged changes in a single atomic transaction.
+                var result = await _dbContext.SaveChangesAsync();
+                if (result > 0)
+                {
+                    _logger.LogInformation("Successfully deleted user {UserId} and all related account links.", user.Id);
+                    return true;
+                }
+
+                _logger.LogWarning("Attempted to delete user {UserId}, but no changes were saved to the database.", user.Id);
+                return false;
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "A database error occurred while trying to delete user {UserId}.", user.Id);
+                return false;
+            }
         }
 
-        private async Task<bool> RemovePrimaryAccount(Account account)
+        // Helper methods now only stage changes and do not call SaveChangesAsync.
+        private void RemovePrimaryAccount(Account account)
         {
             _dbContext.Accounts.Remove(account);
-            var result = await _dbContext.SaveChangesAsync();
-            if(result == 1) return true;
-            return false;
+            _logger.LogInformation("Staged primary account {AccountNumber} for deletion for user.", account.AccountNumber);
         }
 
-        private async Task<bool> RemoveSecondaryUserDetails(Guid id)
+        private async Task RemoveUserAsSecondaryHolder(Guid id)
         {
             var accounts = await _dbContext.Accounts.Where(x => x.SecondaryUserId == id).ToListAsync();
-            if(accounts.Count() > 0)
+            if (accounts.Any())
             {
-                accounts.ForEach(account => account.SecondaryUserId = null);
-                var result = await _dbContext.SaveChangesAsync();
-                if(result == accounts.Count()) return true;
-                return false;
+                accounts.ForEach(account =>
+                {
+                    account.SecondaryUserId = null;
+                    _logger.LogInformation("Staged removal of secondary user {UserId} from account {AccountNumber}.", id, account.AccountNumber);
+                });
             }
-            else return false;
         }
 
-        private async Task<bool> RemoveNomineeUserDetails(Guid id)
+        private async Task RemoveUserAsNominee(Guid id)
         {
             var accounts = await _dbContext.Accounts.Where(x => x.NomineeId == id).ToListAsync();
-            if(accounts.Count() > 0)
+            if (accounts.Any())
             {
-                accounts.ForEach(account => account.NomineeId = null);
-                var result = await _dbContext.SaveChangesAsync();
-                if(result == accounts.Count()) return true;
-                return false;
+                accounts.ForEach(account =>
+                {
+                    account.NomineeId = null;
+                    _logger.LogInformation("Staged removal of nominee {UserId} from account {AccountNumber}.", id, account.AccountNumber);
+                });
             }
-            else return false;
         }
     }
 }
