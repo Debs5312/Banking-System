@@ -9,6 +9,7 @@ namespace AccountManagementSystem.Services
     public class AccountService : IAccountService
     {
         private readonly AppDBContext _dbContext;
+        private static readonly Random _rnd = new Random();
 
         public AccountService(AppDBContext dbContext)
         {
@@ -17,10 +18,9 @@ namespace AccountManagementSystem.Services
 
         public async Task<Account> CreateNewAccount(Account account)
         {
-            Random rnd = new Random();
-            account.AccountNumber = rnd.Next(10000, 1000000000);
-            account.CreatedDate = DateTime.Now;
-            account.UpdatedDate = DateTime.Now;
+            account.AccountNumber = _rnd.Next(10000, 1000000000);
+            account.CreatedDate = DateTime.UtcNow;
+            account.UpdatedDate = DateTime.UtcNow;
             await _dbContext.Accounts.AddAsync(account);
             var result = await _dbContext.SaveChangesAsync();
             if(result == 1) return account;
@@ -58,9 +58,10 @@ namespace AccountManagementSystem.Services
         public async Task<Account> UpdateAccount(Guid id, UpdateAccountDTO updateAccount)
         {
             var account = await _dbContext.Accounts.FirstOrDefaultAsync(x => x.Id == id);
+            if (account == null) return null;
             account.SecondaryUserId = updateAccount.SecondaryUserId;
             account.NomineeId = updateAccount.NomineeId;
-            account.UpdatedDate = DateTime.Now;
+            account.UpdatedDate = DateTime.UtcNow;
             var result = await _dbContext.SaveChangesAsync();
             if(result ==1) return account;
             else return null;

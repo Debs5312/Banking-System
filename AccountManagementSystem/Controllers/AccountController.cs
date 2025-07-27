@@ -1,6 +1,7 @@
 using AccountManagementSystem.Services.IServices;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Models;
 using Models.DTOs;
 
@@ -12,11 +13,13 @@ namespace AccountManagementSystem.Controllers
     {
         private readonly IAccountService _accountService;
         private readonly IMapper _mapper;
+        private readonly ILogger<AccountController> _logger;
 
-        public AccountController(IAccountService accountService, IMapper mapper)
+        public AccountController(IAccountService accountService, IMapper mapper, ILogger<AccountController> logger)
         {
             _accountService = accountService;
             _mapper = mapper;
+            _logger = logger;
         }
 
 
@@ -31,7 +34,7 @@ namespace AccountManagementSystem.Controllers
             }
             catch (Exception e)
             {
-                Console.WriteLine($"{e} thrown with message: {e.Message}");
+                _logger.LogError(e, "Exception thrown in Get AllAccounts with message: {Message}", e.Message);
                 return StatusCode(500);
             }
         }
@@ -70,7 +73,7 @@ namespace AccountManagementSystem.Controllers
             }
             catch (Exception e)
             {
-                Console.WriteLine($"{e} thrown with message: {e.Message}");
+                _logger.LogError(e, "Exception thrown in GetAccountWithRef with message: {Message}", e.Message);
                 return StatusCode(500);
             }
         }
@@ -94,7 +97,7 @@ namespace AccountManagementSystem.Controllers
             }
             catch (Exception e)
             {
-                Console.WriteLine($"{e} thrown with message: {e.Message}");
+                _logger.LogError(e, "Exception thrown in GetAccount with message: {Message}", e.Message);
                 return StatusCode(500);
             }
         }
@@ -120,7 +123,7 @@ namespace AccountManagementSystem.Controllers
             }
             catch (Exception e)
             {
-                Console.WriteLine($"{e} thrown with message: {e.Message}");
+                _logger.LogError(e, "Exception thrown in Create with message: {Message}", e.Message);
                 return StatusCode(500);
             }
         }
@@ -144,7 +147,7 @@ namespace AccountManagementSystem.Controllers
             }
             catch (Exception e)
             {
-                Console.WriteLine($"{e} thrown with message: {e.Message}");
+                _logger.LogError(e, "Exception thrown in Update with message: {Message}", e.Message);
                 return StatusCode(500);
             }
         }
@@ -168,7 +171,7 @@ namespace AccountManagementSystem.Controllers
             }
             catch (Exception e)
             {
-                Console.WriteLine($"{e} thrown with message: {e.Message}");
+                _logger.LogError(e, "Exception thrown in Delete with message: {Message}", e.Message);
                 return StatusCode(500);
             }
         }

@@ -6,6 +6,7 @@ using AutoFixture.Xunit2;
 using AutoMapper;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Models;
 using Models.DTOs;
 using Moq;
@@ -17,10 +18,12 @@ namespace AccountManagementSystem.UnitTests.Controllers
         private readonly Fixture fixture;
         private readonly Mock<IAccountService> _accountService;
         private readonly IMapper mapper;
+        private readonly Mock<ILogger<AccountController>> _loggerMock;
         public TestAccountController()
         {
             fixture = new Fixture();
             _accountService = new Mock<IAccountService>();
+            _loggerMock = new Mock<ILogger<AccountController>>();
             var config = new MapperConfiguration(cfg =>
                 cfg.CreateMap<AccountModelInputDTO, Account>());
             mapper = new Mapper(config);
@@ -33,7 +36,7 @@ namespace AccountManagementSystem.UnitTests.Controllers
             _accountService.Setup(service => service.GetAccounts())
                 .ReturnsAsync(AccountFixtures.AccountsList());
                 
-            var accountController = new AccountController(_accountService.Object, mapper);
+            var accountController = new AccountController(_accountService.Object, mapper, _loggerMock.Object);
 
             // Act
             var result = (OkObjectResult) await accountController.Get();
@@ -49,7 +52,7 @@ namespace AccountManagementSystem.UnitTests.Controllers
             _accountService.Setup(service => service.GetAccounts())
                 .ReturnsAsync(AccountFixtures.AccountsList());
                 
-            var accountController = new AccountController(_accountService.Object, mapper);
+            var accountController = new AccountController(_accountService.Object, mapper, _loggerMock.Object);
 
             // Act
             var result = (OkObjectResult) await accountController.Get();
@@ -66,7 +69,7 @@ namespace AccountManagementSystem.UnitTests.Controllers
             _accountService.Setup(service => service.GetAccounts())
                 .ReturnsAsync(AccountFixtures.AccountsList());
                 
-            var accountController = new AccountController(_accountService.Object, mapper);
+            var accountController = new AccountController(_accountService.Object, mapper, _loggerMock.Object);
 
             // Act
             var result = (OkObjectResult) await accountController.Get();
@@ -83,7 +86,7 @@ namespace AccountManagementSystem.UnitTests.Controllers
             _accountService.Setup(service => service.GetAccounts())
                 .ReturnsAsync(new List<Account>());
                 
-            var accountController = new AccountController(_accountService.Object, mapper);
+            var accountController = new AccountController(_accountService.Object, mapper, _loggerMock.Object);
 
             // Act
             var result = (NotFoundResult) await accountController.Get();
@@ -105,7 +108,7 @@ namespace AccountManagementSystem.UnitTests.Controllers
                                 .Create<Account>();
             _accountService.Setup(service => service.GetSingleAccount(id))
                 .ReturnsAsync(singleAccount);
-            var accountController = new AccountController(_accountService.Object, mapper);
+            var accountController = new AccountController(_accountService.Object, mapper, _loggerMock.Object);
 
             // Act
             var result = (OkObjectResult) await accountController.GetAccount(id, It.IsAny<CancellationToken>());
@@ -123,7 +126,7 @@ namespace AccountManagementSystem.UnitTests.Controllers
             // Arrange
             _accountService.Setup(service => service.GetSingleAccount(id))
                 .ReturnsAsync((Account)null!);
-            var accountController = new AccountController(_accountService.Object, mapper);
+            var accountController = new AccountController(_accountService.Object, mapper, _loggerMock.Object);
 
             // Act
             var result = (NotFoundResult) await accountController.GetAccount(id, It.IsAny<CancellationToken>());
@@ -137,7 +140,7 @@ namespace AccountManagementSystem.UnitTests.Controllers
     public async Task Create_OnInvalidInput_ReturnsBadRequest()
     {
         // Arrange
-        var accountController = new AccountController(_accountService.Object, mapper);
+        var accountController = new AccountController(_accountService.Object, mapper, _loggerMock.Object);
 
         // Act
         var result = await accountController.Create(null!, It.IsAny<CancellationToken>());
@@ -159,7 +162,7 @@ namespace AccountManagementSystem.UnitTests.Controllers
         _accountService.Setup(service => service.CreateNewAccount(It.IsAny<Account>()))
             .ThrowsAsync(new Exception("Service failure"));
 
-        var accountController = new AccountController(_accountService.Object, mapperMock.Object);
+        var accountController = new AccountController(_accountService.Object, mapperMock.Object, _loggerMock.Object);
 
         // Act
         var result = await accountController.Create(inputAccountDetails, It.IsAny<CancellationToken>());
@@ -177,7 +180,7 @@ namespace AccountManagementSystem.UnitTests.Controllers
         _accountService.Setup(service => service.GetAccounts())
             .ThrowsAsync(new Exception("Service failure"));
 
-        var accountController = new AccountController(_accountService.Object, mapper);
+        var accountController = new AccountController(_accountService.Object, mapper, _loggerMock.Object);
 
         // Act
         var result = await accountController.Get();
