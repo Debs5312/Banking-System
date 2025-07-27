@@ -1,5 +1,6 @@
 using AccountManagementSystem.Services.IServices;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Models;
@@ -9,6 +10,7 @@ namespace AccountManagementSystem.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class AccountController : ControllerBase
     {
         private readonly IAccountService _accountService;
@@ -32,10 +34,10 @@ namespace AccountManagementSystem.Controllers
                 if(accounts.Any()) return Ok(accounts);
                 return NotFound();
             }
-            catch (Exception e)
+            catch (Exception e)  
             {
-                _logger.LogError(e, "Exception thrown in Get AllAccounts with message: {Message}", e.Message);
-                return StatusCode(500);
+                _logger.LogError(e, "Exception thrown in Get AllAccounts: {Message}", e.Message);
+                return StatusCode(500, "An internal server error occurred.");
             }
         }
 
@@ -56,25 +58,23 @@ namespace AccountManagementSystem.Controllers
         {
             try
             {
-                if(cancellationToken.IsCancellationRequested)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    return NoContent();
+                cancellationToken.ThrowIfCancellationRequested();
+                var account = await _accountService.GetSingleAccountWithRef(id);
+                if(account != null) {
+                    var accountWithAdharNumber = _mapper.Map<AccountReadDTO>(account);
+                    return Ok(accountWithAdharNumber);
                 }
-                else
-                {
-                    var account = await _accountService.GetSingleAccountWithRef(id);
-                    if(account != null) {
-                        var accountWithAdharNumber = _mapper.Map<AccountReadDTO>(account);
-                        return Ok(accountWithAdharNumber);
-                    }
-                    return NotFound();
-                }
+                return NotFound();
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogInformation("GetAccountWithRef was canceled for id {AccountId}", id);
+                return StatusCode(499, "Client closed request.");
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Exception thrown in GetAccountWithRef with message: {Message}", e.Message);
-                return StatusCode(500);
+                _logger.LogError(e, "Exception thrown in GetAccountWithRef for id {AccountId}: {Message}", id, e.Message);
+                return StatusCode(500, "An internal server error occurred.");
             }
         }
 
@@ -83,22 +83,20 @@ namespace AccountManagementSystem.Controllers
         {
             try
             {
-                if(cancellationToken.IsCancellationRequested)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    return NoContent();
-                }
-                else
-                {
-                    var account = await _accountService.GetSingleAccount(id);
-                    if(account != null) return Ok(account);
-                    return NotFound();
-                }
+                cancellationToken.ThrowIfCancellationRequested();
+                var account = await _accountService.GetSingleAccount(id);
+                if(account != null) return Ok(account);
+                return NotFound();
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogInformation("GetAccount was canceled for id {AccountId}", id);
+                return StatusCode(499, "Client closed request.");
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Exception thrown in GetAccount with message: {Message}", e.Message);
-                return StatusCode(500);
+                _logger.LogError(e, "Exception thrown in GetAccount for id {AccountId}: {Message}", id, e.Message);
+                return StatusCode(500, "An internal server error occurred.");
             }
         }
 
@@ -106,49 +104,55 @@ namespace AccountManagementSystem.Controllers
         [HttpPost("Add")]
         public async Task<IActionResult> Create([FromBody]AccountModelInputDTO accountModelInputDTO, CancellationToken ct)
         {
+            if (accountModelInputDTO == null)
+            {
+                return BadRequest("Account details cannot be null.");
+            }
+            
             try
             {
-                if(ct.IsCancellationRequested)
-                {
-                    ct.ThrowIfCancellationRequested();
-                    return NoContent();
-                }
-                else
-                {
-                    Account account = _mapper.Map<Account>(accountModelInputDTO);
-                    var newAccount = await _accountService.CreateNewAccount(account);
-                    if(newAccount != null) return StatusCode(201, newAccount);
-                    return BadRequest();
-                }
+                ct.ThrowIfCancellationRequested();
+                Account account = _mapper.Map<Account>(accountModelInputDTO);
+                var newAccount = await _accountService.CreateNewAccount(account);
+                if(newAccount != null) return StatusCode(201, newAccount);
+                return BadRequest("Could not create the account with the provided details.");
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogInformation("Create account operation was canceled.");
+                return StatusCode(499, "Client closed request.");
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Exception thrown in Create with message: {Message}", e.Message);
-                return StatusCode(500);
+                _logger.LogError(e, "Exception thrown in Create: {Message}", e.Message);
+                return StatusCode(500, "An internal server error occurred.");
             }
         }
 
         [HttpPut("Update/{id}")]
         public async Task<IActionResult> Update(Guid id, [FromBody]UpdateAccountDTO updateAccount, CancellationToken ct)
         {
+            if (updateAccount == null)
+            {
+                return BadRequest("Update details cannot be null.");
+            }
+
             try
             {
-                if(ct.IsCancellationRequested)
-                {
-                    ct.ThrowIfCancellationRequested();
-                    return NoContent();
-                }
-                else
-                {
-                    var updatedAccount = await _accountService.UpdateAccount(id, updateAccount);
-                    if(updatedAccount != null) return Ok(updatedAccount);
-                    return BadRequest();
-                }
+                ct.ThrowIfCancellationRequested();
+                var updatedAccount = await _accountService.UpdateAccount(id, updateAccount);
+                if(updatedAccount != null) return Ok(updatedAccount);
+                return BadRequest("Could not update the account with the provided details.");
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogInformation("Update account was canceled for id {AccountId}", id);
+                return StatusCode(499, "Client closed request.");
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Exception thrown in Update with message: {Message}", e.Message);
-                return StatusCode(500);
+                _logger.LogError(e, "Exception thrown in Update for id {AccountId}: {Message}", id, e.Message);
+                return StatusCode(500, "An internal server error occurred.");
             }
         }
 
@@ -157,22 +161,20 @@ namespace AccountManagementSystem.Controllers
         {
             try
             {
-                if(ct.IsCancellationRequested)
-                {
-                    ct.ThrowIfCancellationRequested();
-                    return NoContent();
-                }
-                else
-                {
-                    var updatedAccount = await _accountService.DeleteAccount(id);
-                    if(updatedAccount != null) return Ok(updatedAccount);
-                    return BadRequest();
-                }
+                ct.ThrowIfCancellationRequested();
+                var updatedAccount = await _accountService.DeleteAccount(id);
+                if(updatedAccount != null) return Ok(updatedAccount);
+                return BadRequest("Could not delete the account.");
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogInformation("Delete account was canceled for id {AccountId}", id);
+                return StatusCode(499, "Client closed request.");
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Exception thrown in Delete with message: {Message}", e.Message);
-                return StatusCode(500);
+                _logger.LogError(e, "Exception thrown in Delete for id {AccountId}: {Message}", id, e.Message);
+                return StatusCode(500, "An internal server error occurred.");
             }
         }
     }

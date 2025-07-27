@@ -9,6 +9,7 @@ namespace AccountManagementSystem.UnitTests.Fixtures
         public TestMappingProfile()
         {
             CreateMap<AccountModelInputDTO, Account>();
+            CreateMap<Account, AccountReadDTO>();
         }
     }
 }
