@@ -1,15 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using UserManagementSystem.Service;
-using UserManagementSystem.Service.IService;
 using Models;
 using Models.DTOs;
 using Persistance;
-using Xunit;
 
 namespace UserManagementSystem.UnitTests
 {
@@ -17,20 +14,27 @@ namespace UserManagementSystem.UnitTests
     {
         private readonly AppDBContext _dbContext;
         private readonly UserService _userService;
-        private readonly Mock<TokenService> _mockTokenService;
         private readonly Mock<ILogger<UserService>> _mockLogger;
 
         public UserServiceTests()
         {
+            var serviceProvider = new ServiceCollection()
+                .AddEntityFrameworkInMemoryDatabase()
+                .BuildServiceProvider();
+
             var options = new DbContextOptionsBuilder<AppDBContext>()
                 .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .UseInternalServiceProvider(serviceProvider)
                 .Options;
             _dbContext = new AppDBContext(options);
 
-            _mockTokenService = new Mock<TokenService>(null);
+            var mockConfig = new Mock<IConfiguration>();
+            mockConfig.Setup(c => c[It.Is<string>(s => s == "TokenKey")]).Returns("ThisIsA32ByteLongTokenKeyForTesting!");
+
+            var tokenService = new TokenService(mockConfig.Object);
             _mockLogger = new Mock<ILogger<UserService>>();
 
-            _userService = new UserService(_dbContext, _mockTokenService.Object, _mockLogger.Object);
+            _userService = new UserService(_dbContext, tokenService, _mockLogger.Object);
         }
 
         public void Dispose()
@@ -141,12 +145,11 @@ namespace UserManagementSystem.UnitTests
                 Password = password
             };
 
-            _mockTokenService.Setup(t => t.CreateToken(It.IsAny<User>())).Returns("mock-token");
-
             var result = await _userService.LoginUser(loginDTO);
 
             Assert.True(result.LoggedIn);
-            Assert.Equal("mock-token", result.Token);
+            Assert.NotNull(result.Token);
+            Assert.NotEmpty(result.Token);
             Assert.Equal("User is logged in successfully.", result.Message);
         }
 
