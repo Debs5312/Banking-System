@@ -132,26 +132,60 @@ namespace AccountManagementSystem.UnitTests.Controllers
             result.Should().BeOfType<NotFoundResult>();
         }
 
-        // [Fact]
-        // public async Task Add_OnSuccess_NewAccountToDatabse()
-        // {
-        //     // Arrange
-        //     var inputAccountDetails = fixture.Build<AccountModelInputDTO>().Create(); 
-        //     var singleAccount = mapper.Map<Account>(inputAccountDetails);
 
-        //     var mapperMock = new Mock<IMapper>();
-        //     mapperMock.Setup(m => m.Map<AccountModelInputDTO, Account>(It.IsAny<AccountModelInputDTO>())).Returns(singleAccount);
+    [Fact]
+    public async Task Create_OnInvalidInput_ReturnsBadRequest()
+    {
+        // Arrange
+        var accountController = new AccountController(_accountService.Object, mapper);
 
-        //     _accountService.Setup(service => service.CreateNewAccount(singleAccount))
-        //                 .ReturnsAsync(singleAccount);
-        //     var accountController = new AccountController(_accountService.Object, mapperMock.Object);
+        // Act
+        var result = await accountController.Create(null!, It.IsAny<CancellationToken>());
 
-        //     // Act
-        //     var result =  (ObjectResult)await accountController.CreateAccount(inputAccountDetails, It.IsAny<CancellationToken>());
+        // Assert
+        result.Should().BeOfType<BadRequestResult>();
+    }
 
-        //     // Assert
-        //     result.Should().BeOfType<ObjectResult>();
-        //     result.Value.Should().Be(singleAccount);
-        // }
+    [Fact]
+    public async Task Create_OnServiceException_ReturnsStatusCode500()
+    {
+        // Arrange
+        var inputAccountDetails = fixture.Build<AccountModelInputDTO>().Create();
+        var singleAccount = mapper.Map<Account>(inputAccountDetails);
+
+        var mapperMock = new Mock<IMapper>();
+        mapperMock.Setup(m => m.Map<AccountModelInputDTO, Account>(It.IsAny<AccountModelInputDTO>())).Returns(singleAccount);
+
+        _accountService.Setup(service => service.CreateNewAccount(It.IsAny<Account>()))
+            .ThrowsAsync(new Exception("Service failure"));
+
+        var accountController = new AccountController(_accountService.Object, mapperMock.Object);
+
+        // Act
+        var result = await accountController.Create(inputAccountDetails, It.IsAny<CancellationToken>());
+
+        // Assert
+        var statusCodeResult = result as StatusCodeResult;
+        statusCodeResult.Should().NotBeNull();
+        statusCodeResult!.StatusCode.Should().Be(500);
+    }
+
+    [Fact]
+    public async Task Get_OnServiceException_ReturnsStatusCode500()
+    {
+        // Arrange
+        _accountService.Setup(service => service.GetAccounts())
+            .ThrowsAsync(new Exception("Service failure"));
+
+        var accountController = new AccountController(_accountService.Object, mapper);
+
+        // Act
+        var result = await accountController.Get();
+
+        // Assert
+        var statusCodeResult = result as StatusCodeResult;
+        statusCodeResult.Should().NotBeNull();
+        statusCodeResult!.StatusCode.Should().Be(500);
+    }
     }
 }

@@ -23,9 +23,17 @@ namespace AccountManagementSystem.Controllers
         [HttpGet("AllAccounts")]
         public async Task<IActionResult> Get()
         {
-            var accounts = await _accountService.GetAccounts();
-            if(accounts.Any()) return Ok(accounts);
-            return NotFound();
+            try
+            {
+                var accounts = await _accountService.GetAccounts();
+                if(accounts.Any()) return Ok(accounts);
+                return NotFound();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"{e} thrown with message: {e.Message}");
+                return StatusCode(500);
+            }
         }
 
         [HttpGet("AllAccounts/withRef")]
